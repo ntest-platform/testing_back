@@ -109,11 +109,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# REST_FRAMEWORK = {
-#   'DEFAULT_AUTHENTICATION_CLASSES': (
-#     'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-#   ),
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'user.authentication.JSONWebTokenAuthentication',
+    ),
+}
 
 
 # Internationalization
