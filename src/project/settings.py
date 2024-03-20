@@ -110,6 +110,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'user.authentication.JSONWebTokenAuthentication',
     ),
@@ -137,3 +140,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+JWT_ACCESS_TOKEN_MINUTES = os.environ.get('JWT_ACCESS_TOKEN_MINUTES', 5)
+JWT_REFRESH_TOKEN_DAYS = os.environ.get('JWT_REFRESH_TOKEN_DAYS', 1)
