@@ -1,13 +1,9 @@
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import UserManager as DjangoUserManager
 from django.db import models
+from django.utils import timezone
 
-
-class Role(models.TextChoices):
-    admin = "admin", "Администратор"
-    staff = "staff", "Сотрудник"
-    user = "user", "Пользователь"
+from .managers import UserManager
 
 
 class BaseModel(models.Model):
@@ -18,42 +14,37 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class UserManager(DjangoUserManager):
-    def _create_user(self, email, password, commit=True, **extra_fields):
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        if commit:
-            user.save(using=self._db)
-        return user
-
-    def create_user(self, email, password=None, **extra_fields):
-        return self._create_user(email, password, **extra_fields)
-
-    def create_superuser(self, email, password=None, **extra_fields):
-        return self._create_user(email, password, role=Role.admin, **extra_fields)
-
-
 class User(BaseModel, AbstractBaseUser, PermissionsMixin):
-    objects = UserManager()
+    """
+    An abstract base class implementing a fully featured User model with
+    admin-compliant permissions.
+    """
 
-    email = models.EmailField(unique=True)
+    class Role(models.TextChoices):
+        admin = "admin", "Администратор"
+        staff = "staff", "Сотрудник"
+        user = "user", "Пользователь"
+
+    email = models.EmailField(max_length=40, unique=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now)
     role = models.CharField(
         choices=Role.choices,
         max_length=15,
         default=Role.user
     )
-    name = models.CharField(max_length=255, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
 
     @property
     def is_staff(self):
-        return self.role in (Role.admin, Role.staff)
+        return self.role in (self.Role.admin, self.Role.staff)
 
     @property
     def is_superuser(self):
-        return self.role == Role.admin
+        return self.role == self.Role.admin
 
-    EMAIL_FIELD = "email"
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
