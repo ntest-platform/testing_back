@@ -5,8 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from .serializers import UserSerializer, AuthTokenSerializer
+from .serializers import UserSerializer, AuthTokenSerializer, ChangePasswordSerializer
 from .authentication import JSONWebTokenAuthentication, AccessTokenGenerator, RefreshTokenGenerator
+from .services import PasswordChangeService
 
 
 class JSONWebTokenAuth(APIView):
@@ -64,3 +65,17 @@ class CreateUserAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ChangePasswordAPIView(APIView):
+    serializer_class = ChangePasswordSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        result_message, result_status_code = PasswordChangeService(user).execute(serializer.data)
+        return Response(result_message, status=result_status_code)
