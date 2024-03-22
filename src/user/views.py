@@ -5,9 +5,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from .serializers import UserSerializer, AuthTokenSerializer, ChangePasswordSerializer
+from .serializers import (
+    UserSerializer, AuthTokenSerializer,
+    PasswordChangeSerializer, PasswordForgiveSerializer, PasswordResetSerializer
+)
 from .authentication import JSONWebTokenAuthentication, AccessTokenGenerator, RefreshTokenGenerator
-from .services import PasswordChangeService
+from .services import PasswordChangeService, PasswordForgiveService, PasswordResetService
 
 
 class JSONWebTokenAuth(APIView):
@@ -67,8 +70,8 @@ class CreateUserAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class ChangePasswordAPIView(APIView):
-    serializer_class = ChangePasswordSerializer
+class PasswordChangeAPIView(APIView):
+    serializer_class = PasswordChangeSerializer
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -78,4 +81,32 @@ class ChangePasswordAPIView(APIView):
 
         user = request.user
         result_message, result_status_code = PasswordChangeService(user).execute(serializer.data)
+        return Response(result_message, status=result_status_code)
+
+
+class PasswordForgiveAPIView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PasswordForgiveSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        result_message, result_status_code = PasswordForgiveService.execute(serializer.data)
+        return Response(result_message, status=result_status_code)
+
+
+class PasswordResetAPIView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PasswordResetSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        result_message, result_status_code = PasswordResetService.execute(serializer.data)
         return Response(result_message, status=result_status_code)

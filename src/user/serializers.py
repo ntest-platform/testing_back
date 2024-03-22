@@ -24,8 +24,18 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class ChangePasswordSerializer(serializers.Serializer):
+class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+
+class PasswordForgiveSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    recover_code = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
 
 
